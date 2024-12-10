@@ -1,0 +1,87 @@
+# Logs
+logs
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+**/*.pid
+**/*.pid.lock
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build directories
+dist/
+**/dist/
+
+# Temporary directories and files
+tmp/
+temp/
+**/tmp/
+**/temp/
+
+# Coverage directory used by testing tools
+coverage/
+**/coverage/
+*.lcov
+
+# TypeScript cache
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Environment variable files
+.env
+**/.env
+.env.*.local
+**/.env.*.local
+
+# Output of `npm pack` or similar commands
+*.tgz
+**/*.tgz
+
+# Cache and lock files
+.npm
+**/.npm
+.yarn
+**/.yarn
+.yarn-integrity
+**/.yarn-integrity
+.pnpm-debug.log*
+**/.pnpm-debug.log*
+
+# Editor and IDE files
+.vscode/
+.idea/
+**/.vscode/
+**/.idea/
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Coverage and testing files
+.nyc_output/
+**/.nyc_output/
+
+# Ignore build artifacts for specific frameworks
+.next/
+**/.next/
+.svelte-kit/
+**/.svelte-kit/
+.nuxt/
+**/.nuxt/
+
+# Ignore any specific tooling directories
+.cache/
+**/.cache/
+
+# Lerna/Monorepo-related files
+lerna-debug.log
+
