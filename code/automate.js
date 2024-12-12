@@ -20,9 +20,9 @@ const runCommand = (command, options = {}) =>
     });
 
     process.on('error', (error) => reject(error));
-  });
+});
 
-export const automateBuild = async ({
+const automateBuild = async ({
   repoUrl,
   appName,
   appId,
@@ -101,10 +101,10 @@ export const automateBuild = async ({
 
 // Example usage
 automateBuild({
-  repoUrl: 'https://github.com/codewithkin/basic',
+  repoUrl: 'https://github.com/codewithkin/bloggy',
   appName: 'Me',
   appId: 'com.me.hello',
-  localDir: `../projects/${uuidv4()}`,
+  localDir: `../projects/bloggy`,
   keystoreAlias: 'myappkey',
   keystorePassword: 'my-key-password',
   keyPassword: 'my-key-password',
