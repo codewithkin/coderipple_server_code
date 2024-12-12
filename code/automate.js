@@ -28,9 +28,9 @@ export const automateBuild = async ({
   appId,
   localDir,
   keystorePath,
-  keystoreAlias = 'my-key-alias',
-  keystorePassword = 'changeit',
-  keyPassword = 'changeit',
+  keystoreAlias = 'myappkey',
+  keystorePassword = 'my-key-password',
+  keyPassword = 'my-key-password',
 }) => {
   try {
     const git = simpleGit();
@@ -58,33 +58,33 @@ export const automateBuild = async ({
 
     console.log('Building APK...');
     const androidPath = path.join(localDir, 'android');
-    await runCommand('code ./gradlew.bat', { cwd: androidPath });
-    await runCommand('./gradlew.bat assembleRelease', { cwd: androidPath });
+    await runCommand('gradlew assembleRelease', { cwd: androidPath });
 
     const unsignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-unsigned.apk');
-    const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-signed.apk');
-    const alignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-aligned.apk');
+    const signedApkFileName = `app-release-signed-${uuidv4()}.apk`; // Specified jar file name
+    const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release', signedApkFileName);
 
     if (!fs.existsSync(unsignedApkPath)) {
       throw new Error('Unsigned APK generation failed.');
     }
 
-    // Generate a keystore if not provided
+    console.log('Signing APK...');
     if (!keystorePath) {
-      console.log('Generating a new keystore...');
+      console.log('Keystore path not provided. Generating a new keystore...');
       keystorePath = path.join(localDir, `${appName}-keystore.jks`);
+      console.log(keystorePath);
       await runCommand(
         `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keystorePassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
       );
       console.log(`Keystore generated at: ${keystorePath}`);
     }
 
-    console.log('Signing APK...');
     await runCommand(
       `jarsigner -verbose -keystore ${keystorePath} -storepass ${keystorePassword} -keypass ${keyPassword} -signedjar ${signedApkPath} ${unsignedApkPath} ${keystoreAlias}`
     );
 
-    console.log('Aligning APK...');
+    console.log('Aligning signed APK...');
+    const alignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-aligned.apk');
     await runCommand(`zipalign -v 4 ${signedApkPath} ${alignedApkPath}`);
 
     if (fs.existsSync(alignedApkPath)) {
@@ -105,8 +105,8 @@ automateBuild({
   appName: 'Me',
   appId: 'com.me.hello',
   localDir: `../projects/${uuidv4()}`,
-  keystoreAlias: 'my-app-key',
-  keystorePassword: 'my-keystore-password',
+  keystoreAlias: 'myappkey',
+  keystorePassword: 'my-key-password',
   keyPassword: 'my-key-password',
 });
 
