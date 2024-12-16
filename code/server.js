@@ -5,6 +5,11 @@ import { Server } from "socket.io";
 import { createServer } from "node:http";
 import automateBuild from "./automate.js";
 import cors from "cors";
+import {config} from "dotenv";
+
+// Allow Parsing of environment variables
+config()
+
 const app = express();
 
 // Middleware
@@ -25,20 +30,20 @@ console.log("A user connected");
 socket.on("hello", (data) => console.log(data));
 
   socket.on("build", async (data) => {
-   const { appName, repoUrl, appId, appDescription, webAppUrl } = data;
+   const { appName, repoUrl, appId, appDescription, webAppUrl, appType, framework, packageManager, buildCommand } = data;
    console.log(data);
    console.log("Build started...");
-   const localDir = `../projects/project_${Date.now()}`; // Create a unique directory for this build
 
   try {
-    console.log(`Starting build for ${appName} (${appId})...`);
-    const signedApkUrl = await automateBuild({ repoUrl, appName, appId, localDir });
-    console.log(`Build completed for ${appName} (${appId}).`);
+    const signedApkUrl = await automateBuild({ repoUrl, appName, appId, framework, appType, packageManager, buildCommand });
 
     console.log({
       success: true,
       message: `Build completed successfully for ${appName}.`,
     });
+
+    // Upload the resulting file to Linode
+    await uploadFile(signedApkUrl);
 
     socket.emit("newapp",  // Create a new app entry in the database
         {
@@ -51,11 +56,13 @@ socket.on("hello", (data) => console.log(data));
     });
 
     } catch (error) {
-    console.error(`Build failed for ${appName} (${appId}):`, error.message);
-    console.log({
-      success: false,
-      error: `Build failed: ${error.message}`,
-    });
+      console.error(`Build failed for ${appName} (${appId}):`, error.message);
+      console.log({
+        success: false,
+        error: `Build failed: ${error.message}`,
+      });
+
+      socket.emit("error", `An error occured: ${error.message}`)
   }
   });
 
@@ -72,6 +79,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, error: 'Internal Server Error' });
 });
+
 
 // Start server
 const PORT = process.env.PORT || 3000;

@@ -31,8 +31,34 @@ const automateBuild = async ({
   keystoreAlias = 'myappkey',
   keystorePassword = 'my-key-password',
   keyPassword = 'my-key-password',
+  appType = "APK",
+  packageManager,
+  buildCommand = "npm run build",
+  framework
 }) => {
   try {
+    // Specify ba default build directory
+    let buildDirectory = "dist";
+
+    // Change the build directory depending on the framework used
+    switch (framework) {
+      case "React":
+        buildDirectory = "dist"
+      case "Plain JavaScript":
+        buildDirectory = "dist"
+      case "Vue":
+        buildDirectory = "dist"
+      case "Angular":
+        buildDirectory = "dist"
+      case "Nuxt":
+        buildDirectory = "dist"
+      case "Svelte":
+        buildDirectory = "dist"
+      default:
+        buildDirectory = "dist"
+    }
+
+    // Create a new simplegit instance (for project cloning)
     const git = simpleGit();
 
     console.log('Cloning repository...');
@@ -45,10 +71,10 @@ const automateBuild = async ({
     await runCommand('npm install @capacitor/core @capacitor/cli @capacitor/android', { cwd: localDir });
 
     console.log('Building project...');
-    await runCommand('npm run build', { cwd: localDir });
+    await runCommand(buildCommand, { cwd: localDir });
 
     console.log('Initializing Capacitor...');
-    await runCommand(`npx cap init "${appName}" "${appId}" --web-dir=dist`, { cwd: localDir });
+    await runCommand(`npx cap init "${appName}" "${appId}" --web-dir=${buildDirectory}`, { cwd: localDir });
 
     console.log('Adding Android platform...');
     await runCommand('npx cap add android', { cwd: localDir });
@@ -60,19 +86,20 @@ const automateBuild = async ({
     if (!keystorePath) {
       console.log('Keystore path not provided. Generating a new keystore...');
       keystorePath = path.join(localDir, `${appName}-keystore.jks`);
-      console.log(keystorePath);
+      
       await runCommand(
         `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keystorePassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
       );
+
       console.log(`Keystore generated at: ${keystorePath}`);
     }
 
     console.log('Building APK...');
     const androidPath = path.join(localDir, 'android');
-    await runCommand(`npx cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=APK`, { cwd: localDir });
+    await runCommand(`npx cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=${appType}`, { cwd: localDir });
 
     const unsignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-unsigned.apk');
-    const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-signed.apk', signedApkFileName);
+    const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-signed.apk');
 
     if (!fs.existsSync(unsignedApkPath)) {
       throw new Error('Unsigned APK generation failed.');
