@@ -117,13 +117,13 @@ const automateBuild = async ({
 };
 
 // Example usage
-  automateBuild({
+  /* automateBuild({
   repoUrl: "https://github.com/HospitalRun/hospitalrun-frontend",
   appName: 'Hospital-Run',
   appId: 'com.coderipple.hospital-run',
   keystoreAlias: 'myappkey',
   keystorePassword: 'my-key-password',
   keyPassword: 'my-key-password',
-}); 
+}); */
 
 export default automateBuild;
