@@ -1,32 +1,36 @@
+import { v4 } from 'uuid';
 import automateBuild from '../automate.js';
 
 export const handleBuild = async (req, res) => {
-  const { repoUrl, appName, appId } = req.body;
+  const { appName, repoUrl, appId, appDescription, webAppUrl, appType, framework, packageManager, buildCommand } = req.body;
+ 
+ try {
+   const signedApkUrl = await automateBuild({ repoUrl, appName, appDescription, webAppUrl, appId, framework, appType, packageManager, buildCommand });
 
-  if (!repoUrl || !appName || !appId) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required fields: repoUrl, appName, or appId',
-    });
-  }
+   console.log({
+     success: true,
+     message: `Build completed successfully for ${appName}.`,
+   });
 
-  const localDir = `../projects/project_${Date.now()}`; // Create a unique directory for this build
+   // Upload the resulting file to Linode
+   // await uploadFile(signedApkUrl);
 
-  try {
-    console.log(`Starting build for ${appName} (${appId})...`);
-    await automateBuild({ repoUrl, appName, appId, localDir });
-    console.log(`Build completed for ${appName} (${appId}).`);
+   return res.status(200).json({
+     success: true,
+     message: `Build completed successfully for ${appName}.`,
+   });
 
-    return res.status(200).json({
-      success: true,
-      message: `Build completed successfully for ${appName}.`,
-    });
-  } catch (error) {
-    console.error(`Build failed for ${appName} (${appId}):`, error.message);
-    return res.status(500).json({
-      success: false,
-      error: `Build failed: ${error.message}`,
-    });
-  }
+   } catch (error) {
+     console.error(`Build failed for ${appName} (${appId}):`, error.message);
+     console.log({
+       success: false,
+       error: `Build failed: ${error.message}`,
+     });
+
+     return res.status(500).json({
+       success: false,
+       message: `Build failed: ${error.message}`,
+     })
+ }
 };
 

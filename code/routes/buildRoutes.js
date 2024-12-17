@@ -3,7 +3,9 @@ import { handleBuild } from '../controllers/buildController.js';
 
 const router = express.Router();
 
-// POST /api/build
+// POST routes
+
+// Build a new app route
 router.post('/', handleBuild);
 
 export default router;

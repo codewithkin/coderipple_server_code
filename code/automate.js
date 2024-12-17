@@ -4,23 +4,6 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 
-const runCommand = (command, options = {}) =>
-  new Promise((resolve, reject) => {
-    const process = exec(command, options);
-
-//    process.stdout.on('data', (data) => process.stdout.write(data));
-    
-    process.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Command "${command}" failed with exit code ${code}`));
-      }
-    });
-
-    process.on('error', (error) => reject(error));
-});
-
 const automateBuild = async ({
   repoUrl,
   appName,
@@ -31,30 +14,55 @@ const automateBuild = async ({
   keystorePassword = 'my-key-password',
   keyPassword = 'my-key-password',
   appType = "APK",
-  packageManager,
+  packageManager = 'npm', // Default package manager
   buildCommand = "npm run build",
   framework
 }) => {
   try {
-    // Specify ba default build directory
+    // Determine commands based on the package manager
+    const installCommand = {
+      npm: 'npm install',
+      yarn: 'yarn install',
+      pnpm: 'pnpm install',
+      bun: 'bun install'
+    }[packageManager];
+
+    const packageManagerX = {
+      npm: 'npx',
+      yarn: 'yarn',
+      pnpm: 'pnpx',
+      bun: 'bunx'
+    }[packageManager];
+
+    if (!installCommand || !packageManagerX) {
+      throw new Error(`Unsupported package manager: ${packageManager}`);
+    }
+
+    // Specify default build directory
     let buildDirectory = "dist";
 
     // Change the build directory depending on the framework used
     switch (framework) {
       case "React":
-        buildDirectory = "dist"
+        buildDirectory = "dist";
+        break;
       case "Plain JavaScript":
-        buildDirectory = "dist"
+        buildDirectory = "dist";
+        break;
       case "Vue":
-        buildDirectory = "dist"
+        buildDirectory = "dist";
+        break;
       case "Angular":
-        buildDirectory = "dist"
+        buildDirectory = "dist";
+        break;
       case "Nuxt":
-        buildDirectory = "dist"
+        buildDirectory = "dist";
+        break;
       case "Svelte":
-        buildDirectory = "dist"
+        buildDirectory = "dist";
+        break;
       default:
-        buildDirectory = "dist"
+        buildDirectory = "dist";
     }
 
     // Create a new simplegit instance (for project cloning)
@@ -64,29 +72,29 @@ const automateBuild = async ({
     await git.clone(repoUrl, localDir);
 
     console.log('Installing dependencies...');
-    await runCommand('npm install --verbose', { cwd: localDir });
+    await execPromise(installCommand, { cwd: localDir });
 
     console.log('Installing Capacitor...');
-    await runCommand('npm install @capacitor/core @capacitor/cli @capacitor/android', { cwd: localDir });
+    await execPromise(`${installCommand} @capacitor/core @capacitor/cli @capacitor/android`, { cwd: localDir });
 
     console.log('Building project...');
-    await runCommand(buildCommand, { cwd: localDir });
+    await execPromise(buildCommand, { cwd: localDir });
 
     console.log('Initializing Capacitor...');
-    await runCommand(`npx cap init "${appName}" "${appId}" --web-dir=${buildDirectory}`, { cwd: localDir });
+    await execPromise(`${packageManagerX} cap init "${appName}" "${appId}" --web-dir=${buildDirectory}`, { cwd: localDir });
 
     console.log('Adding Android platform...');
-    await runCommand('npx cap add android', { cwd: localDir });
+    await execPromise(`${packageManagerX} cap add android`, { cwd: localDir });
 
     console.log('Syncing Capacitor...');
-    await runCommand('npx cap sync android', { cwd: localDir });
+    await execPromise(`${packageManagerX} cap sync android`, { cwd: localDir });
 
     console.log('Signing APK...');
     if (!keystorePath) {
       console.log('Keystore path not provided. Generating a new keystore...');
       keystorePath = path.join(localDir, `${appName}-keystore.jks`);
-      
-      await runCommand(
+
+      await execPromise(
         `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keystorePassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
       );
 
@@ -95,7 +103,10 @@ const automateBuild = async ({
 
     console.log('Building APK...');
     const androidPath = path.join(localDir, 'android');
-    await runCommand(`npx cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=${appType}`, { cwd: localDir });
+    await execPromise(
+      `${packageManagerX} cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=${appType}`,
+      { cwd: localDir }
+    );
 
     const unsignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-unsigned.apk');
     const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-signed.apk');
@@ -116,14 +127,35 @@ const automateBuild = async ({
   }
 };
 
+const execPromise = (command, options = {}) =>
+  new Promise((resolve, reject) => {
+    const process = exec(command, options);
+
+    process.stdout.on('data', (data) => process.stdout.write(data));
+    process.stderr.on('data', (data) => process.stderr.write(data));
+
+    process.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Command "${command}" failed with exit code ${code}`));
+      }
+    });
+
+    process.on('error', (error) => reject(error));
+  });
+
 // Example usage
-  /* automateBuild({
+/*
+automateBuild({
   repoUrl: "https://github.com/HospitalRun/hospitalrun-frontend",
   appName: 'Hospital-Run',
   appId: 'com.coderipple.hospital-run',
+  packageManager: 'yarn', // Specify the package manager here
   keystoreAlias: 'myappkey',
   keystorePassword: 'my-key-password',
   keyPassword: 'my-key-password',
-}); */
+});
+*/
 
 export default automateBuild;
