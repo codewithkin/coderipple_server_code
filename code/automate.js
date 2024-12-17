@@ -1,32 +1,15 @@
-import { exec } from 'child_process';
 import simpleGit from 'simple-git';
 import path from 'path';
 import fs from 'fs';
+import { exec } from 'child_process';
 import { v4 as uuidv4 } from 'uuid';
-
-const runCommand = (command, options = {}) =>
-  new Promise((resolve, reject) => {
-    const process = exec(command, options);
-
-    process.stdout.on('data', (data) => process.stdout.write(data));
-    process.stderr.on('data', (data) => process.stderr.write(data));
-
-    process.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Command "${command}" failed with exit code ${code}`));
-      }
-    });
-
-    process.on('error', (error) => reject(error));
-});
+import cloneRepository from "./lib/cloneRepository.js";
 
 const automateBuild = async ({
   repoUrl,
   appName,
   appId,
-  localDir = `../projects/${appName}-${uuidv4()}`,
+  localDir = `/projects/${appName}-${uuidv4()}`,
   keystorePath,
   keystoreAlias = 'myappkey',
   keystorePassword = 'my-key-password',
@@ -62,41 +45,41 @@ const automateBuild = async ({
     const git = simpleGit();
 
     console.log('Cloning repository...');
-    await git.clone(repoUrl, localDir);
+    await cloneRepository(repoUrl, localDir);
 
     console.log('Installing dependencies...');
-    await runCommand('npm install --verbose', { cwd: localDir });
+    console.log(localDir);
+    await exec('/usr/bin/npm install', { cwd: localDir });
 
     console.log('Installing Capacitor...');
-    await runCommand('npm install @capacitor/core @capacitor/cli @capacitor/android', { cwd: localDir });
+    await exec('npm install @capacitor/core @capacitor/cli @capacitor/android', { cwd: localDir });
 
     console.log('Building project...');
-    await runCommand(buildCommand, { cwd: localDir });
+    await exec(buildCommand, { cwd: localDir });
 
     console.log('Initializing Capacitor...');
-    await runCommand(`npx cap init "${appName}" "${appId}" --web-dir=${buildDirectory}`, { cwd: localDir });
+    await exec(`npx cap init "${appName}" "${appId}" --web-dir=${buildDirectory}`, { cwd: localDir });
 
     console.log('Adding Android platform...');
-    await runCommand('npx cap add android', { cwd: localDir });
+    await exec('npx cap add android', { cwd: localDir });
 
     console.log('Syncing Capacitor...');
-    await runCommand('npx cap sync android', { cwd: localDir });
+    await exec('npx cap sync android', { cwd: localDir });
 
     console.log('Signing APK...');
     if (!keystorePath) {
       console.log('Keystore path not provided. Generating a new keystore...');
       keystorePath = path.join(localDir, `${appName}-keystore.jks`);
-      
-      await runCommand(
-        `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keystorePassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
-      );
+
+      await exec(
+        `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keystorePassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Devel>      );
 
       console.log(`Keystore generated at: ${keystorePath}`);
     }
 
     console.log('Building APK...');
     const androidPath = path.join(localDir, 'android');
-    await runCommand(`npx cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=${appType}`, { cwd: localDir });
+    await exec(`npx cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidrel>`);
 
     const unsignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-unsigned.apk');
     const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-signed.apk');
@@ -104,7 +87,6 @@ const automateBuild = async ({
     if (!fs.existsSync(unsignedApkPath)) {
       throw new Error('Unsigned APK generation failed.');
     }
-
     if (fs.existsSync(signedApkPath)) {
       console.log(`Signed APK generated successfully at: ${signedApkPath}`);
       return signedApkPath;
@@ -118,14 +100,14 @@ const automateBuild = async ({
 };
 
 // Example usage
- /* automateBuild({
+automateBuild({
   repoUrl: 'https://github.com/codewithkin/basic',
   appName: 'me',
   appId: 'com.me.hello',
-  localDir: `../projects/basic`,
   keystoreAlias: 'myappkey',
   keystorePassword: 'my-key-password',
   keyPassword: 'my-key-password',
-}); */
+}); 
 
 export default automateBuild;
+

@@ -23,7 +23,7 @@ const io = new Server(server, { cors: {
 }});
 
 app.use(cors());
-
+app.timeout = 100000;
 io.on("connection", (socket) => {
 console.log("A user connected");
 
