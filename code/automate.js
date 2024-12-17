@@ -16,7 +16,8 @@ const automateBuild = async ({
   appType = "APK",
   packageManager = 'npm', // Default package manager
   buildCommand = "npm run build",
-  framework
+  framework,
+  buildDirectory = "dist" // Use provided buildDirectory or default to "dist"
 }) => {
   try {
     // Determine commands based on the package manager
@@ -36,33 +37,6 @@ const automateBuild = async ({
 
     if (!installCommand || !packageManagerX) {
       throw new Error(`Unsupported package manager: ${packageManager}`);
-    }
-
-    // Specify default build directory
-    let buildDirectory = "dist";
-
-    // Change the build directory depending on the framework used
-    switch (framework) {
-      case "React":
-        buildDirectory = "dist";
-        break;
-      case "Plain JavaScript":
-        buildDirectory = "dist";
-        break;
-      case "Vue":
-        buildDirectory = "dist";
-        break;
-      case "Angular":
-        buildDirectory = "dist";
-        break;
-      case "Nuxt":
-        buildDirectory = "dist";
-        break;
-      case "Svelte":
-        buildDirectory = "dist";
-        break;
-      default:
-        buildDirectory = "dist";
     }
 
     // Create a new simplegit instance (for project cloning)
@@ -152,6 +126,7 @@ automateBuild({
   appName: 'Hospital-Run',
   appId: 'com.coderipple.hospital-run',
   packageManager: 'yarn', // Specify the package manager here
+  buildDirectory: 'out', // Specify a custom build directory here
   keystoreAlias: 'myappkey',
   keystorePassword: 'my-key-password',
   keyPassword: 'my-key-password',
