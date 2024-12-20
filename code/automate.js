@@ -69,7 +69,7 @@ const automateBuild = async ({
       keystorePath = path.join(localDir, `${appName}-keystore.jks`);
 
       await execPromise(
-        `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keystorePassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
+        `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keyPassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
       );
 
       console.log(`Keystore generated at: ${keystorePath}`);
@@ -77,8 +77,9 @@ const automateBuild = async ({
 
     console.log('Building APK...');
     const androidPath = path.join(localDir, 'android');
+    console.log(`../${appName}-keystore.jks`)
     await execPromise(
-      `${packageManagerX} cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=${appType}`,
+      `${packageManagerX} cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --release --androidreleasetype=${appType}`,
       { cwd: localDir }
     );
 
