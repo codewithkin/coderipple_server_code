@@ -77,9 +77,8 @@ const automateBuild = async ({
 
     console.log('Building APK...');
     const androidPath = path.join(localDir, 'android');
-    console.log(`../${appName}-keystore.jks`)
     await execPromise(
-      `${packageManagerX} cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --release --androidreleasetype=${appType}`,
+      `${packageManagerX} cap build android --keystorepath=../${appName}-keystore.jks --keystorepass=${keystorePassword} --keystorealias=${keystoreAlias} --keystorealiaspass=${keystorePassword} --androidreleasetype=${appType}`,
       { cwd: localDir }
     );
 
