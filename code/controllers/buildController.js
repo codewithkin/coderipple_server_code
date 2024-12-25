@@ -1,12 +1,12 @@
 import { v4 } from 'uuid';
 import automateBuild from '../automate.js';
-import uploadFile from '../utils/uploadFile.js';
+import uploadFile from '../lib/uploadFile.js';
 
 export const handleBuild = async (req, res) => {
-  const { appName, repoUrl, appId, appDescription, webAppUrl, appType, framework, packageManager, buildCommand } = req.body;
+  const { appName, repoUrl, appId, appDescription, appIconUrl, webAppUrl, appType, framework, packageManager, buildCommand } = req.body;
  
  try {
-   const signedApkUrl = await automateBuild({ repoUrl, appName, appDescription, webAppUrl, appId, framework, appType, packageManager, buildCommand });
+   const signedApkUrl = await automateBuild({ repoUrl,appIconUrl, appName, appDescription, webAppUrl, appId, framework, appType, packageManager, buildCommand });
 
    console.log({
      success: true,
@@ -16,14 +16,15 @@ export const handleBuild = async (req, res) => {
    // Convert APK into a blob file
     const blob = new Blob([signedApkUrl], { type: 'application/vnd.android.package-archive' });
 
-   // Upload the resulting file to Linode
-   const fileUrl = await uploadFile(blob);
-   console.log("APK File uploaded:", fileUrl);
+  const file = fs.readFileSync(signedApkUrl);
+  const fileUrl = await UploadFile(file);
+  console.log("APK File uploaded:", fileUrl);
 
    // Return the app's data to the fronted
    return res.status(200).json({
      ...req.body,
-     appIconUrl: fileUrl
+     apkUrl: fileUrl,
+     status: "success"
    });
 
    } catch (error) {
@@ -34,8 +35,8 @@ export const handleBuild = async (req, res) => {
      });
 
      return res.status(500).json({
-       success: false,
-       message: `Build failed: ${error.message}`,
+      ...req.body,
+     status: "unsuccessful"
      })
  }
 };

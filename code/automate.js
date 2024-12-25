@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 const automateBuild = async ({
   repoUrl,
   appName,
+  appIconUrl,
   appId,
   localDir = `../projects/${appName}-${uuidv4()}`,
   keystorePath,
@@ -44,6 +45,9 @@ const automateBuild = async ({
 
     console.log('Cloning repository...');
     await git.clone(repoUrl, localDir);
+
+    // console.log('Downloading app icon...');
+    // await execPromise(`wget ${appIconUrl}`, { cwd: localDir });
 
     console.log('Installing dependencies...');
     await execPromise(installCommand, { cwd: localDir });
