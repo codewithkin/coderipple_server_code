@@ -1,6 +1,6 @@
-import { v4 } from 'uuid';
 import automateBuild from '../automate.js';
-import uploadFile from '../lib/uploadFile.js';
+import UploadFile from '../lib/uploadFile.js';
+import fs from "fs";
 
 export const handleBuild = async (req, res) => {
   const { appName, repoUrl, appId, appDescription, appIconUrl, webAppUrl, appType, framework, packageManager, buildCommand } = req.body;
@@ -13,12 +13,10 @@ export const handleBuild = async (req, res) => {
      message: `Build completed successfully for ${appName}.`,
    });
 
-   // Convert APK into a blob file
-    const blob = new Blob([signedApkUrl], { type: 'application/vnd.android.package-archive' });
-
   const file = fs.readFileSync(signedApkUrl);
-  const fileUrl = await UploadFile(file);
-  console.log("APK File uploaded:", fileUrl);
+  const fileUrl = await UploadFile(file, {
+    name: `${appName}.apk`,
+  });
 
    // Return the app's data to the fronted
    return res.status(200).json({
