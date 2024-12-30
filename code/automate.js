@@ -75,7 +75,6 @@ const automateBuild = async ({
       await execPromise(
         `keytool -genkey -v -keystore ${keystorePath} -alias ${keystoreAlias} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${keyPassword} -keypass ${keyPassword} -dname "CN=${appName}, OU=Development, O=Company, L=City, S=State, C=US"`
       );
-
       console.log(`Keystore generated at: ${keystorePath}`);
     }
 
@@ -88,12 +87,13 @@ const automateBuild = async ({
 
     const unsignedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-unsigned.apk');
     const signedApkPath = path.join(androidPath, 'app/build/outputs/apk/release/app-release-signed.apk');
+    const aabFilePath = path.join(androidPath, 'app/build/outputs/bundle/release/app-release-signed.aab');
 
-    if (!fs.existsSync(unsignedApkPath)) {
+    if (!fs.existsSync(signedApkPath) && !fs.existsSync(aabFilePath)) {
       throw new Error('Unsigned APK generation failed.');
     }
 
-    if (fs.existsSync(signedApkPath)) {
+    if (fs.existsSync(signedApkPath) || fs.existsSync(aabFilePath)) {
       console.log(`Signed APK generated successfully at: ${signedApkPath}`);
       return signedApkPath;
     } else {

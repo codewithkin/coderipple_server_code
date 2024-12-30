@@ -4,16 +4,17 @@ import fs from "fs";
 
 export const handleBuild = async (req, res) => {
   const { appName, repoUrl, appId, appDescription, appIconUrl, webAppUrl, appType, framework, packageManager, buildCommand } = req.body;
+  console.log(req.body);
  
  try {
-   const signedApkUrl = await automateBuild({ repoUrl,appIconUrl, appName, appDescription, webAppUrl, appId, framework, appType, packageManager, buildCommand });
+   const appFileUrl = await automateBuild({ repoUrl,appIconUrl, appName, appDescription, webAppUrl, appId, framework, appType, packageManager, buildCommand });
 
    console.log({
      success: true,
      message: `Build completed successfully for ${appName}.`,
    });
 
-  const file = fs.readFileSync(signedApkUrl);
+  const file = fs.readFileSync(appFileUrl);
   const fileUrl = await UploadFile(file, {
     name: `${appName}.apk`,
   });
