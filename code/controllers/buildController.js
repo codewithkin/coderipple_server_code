@@ -16,7 +16,7 @@ export const handleBuild = async (req, res) => {
 
   const file = fs.readFileSync(appFileUrl);
   const fileUrl = await UploadFile(file, {
-    name: `${appName}.apk`,
+    name: `${appName}.${appType === "APK" ? "apk" : "aab"}`,
   });
 
    // Return the app's data to the fronted
